@@ -9,6 +9,7 @@ if __name__ == "__main__":
     # Hyperparameters
 
     rep_size = 32
+    capacity = 3
     dataset_size = 100000
     batch_size = 64
     interval = [-1, 1]
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     
     device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
     print(f"Using {device} device")
-    model = NeuralNetwork(rep_size).to(device)
+    model = NeuralNetwork(interval, rep_size=rep_size, capacity=capacity).to(device)
     loss_fn = AreaLoss(bound, alpha=alpha)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=decay)
 
@@ -44,4 +45,4 @@ if __name__ == "__main__":
     g = lambda x: 1.679 * cosh(x/1.679)
     print(model(it[0].unsqueeze(dim=0)))
     print(model(it[1].unsqueeze(dim=0)))
-    plotFunction(model, g, interval=interval, image=[0.5, 3])
+    plotFunction(model, g, interval=interval, image=[-5.0, 10])

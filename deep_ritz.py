@@ -33,7 +33,7 @@ class Layer(nn.Module):
         return logits
     
 class ResidualLayer(nn.Module):
-    def __init__(self, input_size, in_between, output_size, activation = "cubic"):
+    def __init__(self, input_size, in_between, output_size, activation = "tanh"):
         super().__init__()
         self.layer1 = Layer(input_size, in_between, activation)
         self.layer2 = Layer(in_between, output_size, activation)
@@ -44,17 +44,22 @@ class ResidualLayer(nn.Module):
         return out + x
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, rep_size=32, capacity=3):
+    def __init__(self, interval, rep_size=32, capacity=3):
         super().__init__()
         activation = "cubic"
         layers = [ResidualLayer(rep_size, rep_size, rep_size, activation) for _ in range(capacity)]
         layers.insert(0, Layer(1, rep_size, activation))
         layers.append(nn.Linear(rep_size, 1))
         self.layer_stack = nn.Sequential(*layers)
+        self.interval = interval
 
     def forward(self, x):
-        logits = self.layer_stack(x)
+        normal_input = self.normalization(x)
+        logits = self.layer_stack(normal_input)
         return logits
+    
+    def normalization(self, x):
+        return (x - self.interval[0])/(self.interval[1] - self.interval[0])
 
 class PoisonLoss(nn.Module):
     def __init__(self, aux_func, bound, alpha=1e0):
